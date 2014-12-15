@@ -1,0 +1,100 @@
+<html>
+	<head>
+		<title></title>
+		<link rel="stylesheet" href="./style.css" />
+		<meta charset="UTF-8" />
+	</head>
+
+	<body>
+		<div class="row">
+			<div class="container">
+				<nav class="u-pull-right four columns">
+					<div id="docs-aside">
+						<ul id="docs-aside" class="nav">
+							
+								<li class="active">
+									<a href="#autodoc">Autodoc</a>
+									<ul class="nav">
+										
+											<li><a class="block-link" href="#sourcefiles">Finding sources</a></li>
+										
+											<li><a class="block-link" href="#autodoc.usage">CLI Usage</a></li>
+										
+									</ul>
+								</li>
+							
+						</ul>
+						<a class="back-to-top" href="#top">Back to top</a>
+					</div>
+				</nav>
+
+				<div id="content" class="eight columns">
+					
+						<span class="hidden" id="autodoc"></span><h1>Autodoc</h1>
+<p>Tool to build a complete documentation from various sources.</p>
+
+					
+						
+					
+						<span class="hidden" id="sourcefiles"></span><h2 id="sourcefiles" path="autodoc.sourcefiles">Finding sources</h2>
+<p>Sources can be either a plain markdown file or elixir source file
+with markdown documentation inline.</p>
+<p>When a source file is scanned, we look for all the headings. The
+block is then injected into the tree at the level specified by the
+heading. This way of looking up elements means that each block must
+start with a heading, or an element that specifies a path attribute.</p>
+
+					
+						<span class="hidden" id="autodoc.usage"></span><h2 id="autodoc.usage" data-path="autodoc.usage">CLI Usage</h2>
+<p><strong>Usage:</strong></p>
+<pre><code class="">$ autodoc &lt;opts&gt; [source1, source2, ...]</code></pre>
+<h3 id="cli-arguments">Arguments</h3>
+<p>Source files are specified as one or more wildcard patterns. These
+will be globbed and sent the correct scanner.</p>
+<h3 id="cli-opts">Options</h3>
+<ul>
+<li><code class="inline">--output &lt;dir&gt;</code> - The output directory <em>(default: <code class="inline">./docs/</code>)</em>
+</li>
+<li><code class="inline">--css &lt;file1&gt; [&lt;file2&gt; &lt;file3&gt; ...]</code> - List of stylesheets to include
+</li>
+<li><code class="inline">--scripts &lt;file1&gt; [&lt;file2&gt; &lt;file3&gt; ...]</code> - List of scripts to include
+</li>
+<li><code class="inline">--template [tag:]&lt;file&gt;</code> - the file used for <code class="inline">[tag]</code> (<code class="inline">tag</code> defaults to <code class="inline">layout</code>)
+</li>
+<li><code class="inline">--renderer &lt;module&gt;</code> - The module mapping the doctree tree to template
+</li>
+<li><code class="inline">--version &lt;vsn&gt;</code> - The doc version (default: taken from mix if applicable)
+</li>
+<li><code class="inline">--title &lt;title&gt;</code> - The title of the docs
+</li>
+</ul>
+<h2>Mix usage</h2>
+<p><strong>Usage:</strong></p>
+<pre><code class="">$ mix autodoc &lt;opts&gt; [source1, source2, ...]</code></pre>
+<p>Options are the same as in <a href="#cli-opts">CLI Opts</a></p>
+
+					
+				</div>
+			</div>
+		</div>
+		<footer class="docs-footer" role="contentinfo">
+		<div class="container">
+			<p>
+				Designed, built and powered by awesome open source projects including
+					<a href="http://getskeleton.com/">Skeleton</a>,
+					<a href="https://github.com">GitHub</a> and
+					<a href="https://elixir-lang.org/">Elixir</a>
+			</p>
+
+			<ul class="docs-footer-links muted">
+				<li><b>Versions</b></li>
+				
+					
+						<li class="active"><a href="../0.0.1">0.0.1</a></li>
+					
+				
+			</ul>
+		</div>
+		</footer>
+	</body>
+</html>
