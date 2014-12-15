@@ -6,6 +6,9 @@ API docs), instead it aims at producing custom documentation for REST API's,
 protocols etc. It was made specifically to pull out information about
 HTTP Endpoints and different packet formats and put them on a nicely styled page.
 
+
+**Documentation http://lafka.github.io/autodoc/0.0.1/**
+
 ## Usage (mix)
 
 ```
