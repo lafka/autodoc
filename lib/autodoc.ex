@@ -1,6 +1,7 @@
 defmodule Autodoc do
   @moduledoc """
   # Autodoc
+  {: data-path=doc.autodoc }
 
   Tool to build a complete documentation from various sources.
   """

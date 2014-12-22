@@ -1,7 +1,7 @@
 defmodule Autodoc.Scanner do
 
   defmodule Tree do
-    defstruct path:  [], attrs: %{}, text: "", title: nil, link: nil
+    defstruct path:  [], attrs: %{}, text: "", title: nil, link: nil, children: %{}
   end
 
   @parsers [Autodoc.Scanner.Elixir,
@@ -9,7 +9,7 @@ defmodule Autodoc.Scanner do
 
   @doc """
   ## Finding sources
-  {: path=autodoc.sourcefiles #sourcefiles }
+  {: data-path=doc.autodoc.sourcefiles #sourcefiles }
 
   Sources can be either a plain markdown file or elixir source file
   with markdown documentation inline.
@@ -30,7 +30,7 @@ defmodule Autodoc.Scanner do
 
         case guess_parser(file, @parsers) do
           [parser|_] ->
-            struct = File.read!(file) |> parser.parse opts
+            struct = parser.parse file, opts
             [struct | doc]
 
           [] ->
@@ -63,19 +63,19 @@ defmodule Autodoc.Scanner do
 
     def handles?(file), do: Regex.match?(~r/\.ex$/, file)
 
-    def parse(buf, _opts) do
-      mod = modulename buf
-      doc = Code.get_docs mod, :all
-      {_line?, moddoc} = doc[:moduledoc]
+    def parse(file, _opts) do
+      Enum.reduce Code.load_file(file), [], fn({mod, _}, acc) ->
+        doc = Code.get_docs mod, :all
+        {_line?, moddoc} = doc[:moduledoc] || {-1, nil}
 
-      moddoc = Markdown.to_doc moddoc
+        moddoc = Markdown.to_doc moddoc
 
-      partials = Enum.reduce doc[:docs], List.wrap(moddoc), fn
-        ({_fa, _line, _, _, nil}, acc) -> acc
-        ({_fa, _line, _, _, doc}, acc) ->
-          [Markdown.to_doc(doc) | acc]
+        partials = Enum.reduce doc[:docs] || [], acc ++ List.wrap(moddoc), fn
+          ({_fa, _line, _, _, nil}, acc2) -> acc2
+          ({_fa, _line, _, _, doc}, acc2) ->
+            acc2 ++ List.wrap Markdown.to_doc(doc)
+        end
       end
-
     end
 
     defp modulename(buf) do
@@ -95,41 +95,71 @@ defmodule Autodoc.Scanner do
 
     def handles?(file), do: Regex.match?(~r/\.md$/, file)
 
+    def parse(file, _opts) do
+      List.wrap(File.read!(file) |> to_doc)
+    end
+
+    defp chunk_by(vals, callback) do
+      {rest, res} =
+        vals |> Enum.reduce {[], []}, fn
+          (val, {[], []}) -> {[val], []}
+          (val, {part, acc}) ->
+            case callback.(val) do
+              true  -> {[val], [Enum.reverse(part)|acc]}
+              false -> {[val | part], acc}
+            end
+          end
+
+      res = case rest do
+        [] -> res
+        vals -> [Enum.reverse(vals) | res]
+      end
+      Enum.reverse res
+    end
+
     def to_doc(nil), do: nil
     def to_doc(buf) do
       lines = String.split(buf, ~r{\r\n?|\n})
-      { blocks, links } = Earmark.Parser.parse(lines, %Options{smartypants: false})
 
-      case blocks do
-        [%Earmark.Block.Heading{attrs: attrs, content: heading, level: lvl} = e | _] ->
-          path = findpath(attrs) || construct_path(heading, lvl)
-          id = findid(attrs)
-              text = maybe_prefix_id(Earmark.to_html(buf, %Earmark.Options{smartypants: false}), id, path)
-          %Tree{:path => path, :link => id, title: heading, text: text}
+      %{renderer: renderer, mapper: mapper} = options = %Options{smartypants: false}
+      { blocks, links } = Earmark.Parser.parse(lines, options)
+      context = %Earmark.Context{options: options, links: links }
+        |> Earmark.Inline.update_context
 
-        [%{attrs: attrs} | _] ->
-          case findpath attrs do
-            nil ->
-              nil
-
-            path ->
-              id = findid(attrs)
-              text = maybe_prefix_id(Earmark.to_html(buf, %Earmark.Options{smartypants: false}), id, path)
-              %Tree{:path => path, :link => id, text: text}
-          end
-
-        _ ->
-          nil
-      end
+      # Scan for all the elements containing a path and provide a
+      # "document like" tree structure to work with
+      (List.wrap(blocks)
+        |> chunk_by fn(elem) -> nil !== findpath elem.attrs end)
+        |> Enum.map fn([elem | _] = blks) ->
+          path = findpath elem.attrs
+          id = findid nil, path
+          title = findtitle elem
+          text = maybe_prefix_id(renderer.render(blks, context, mapper), id, path)
+          %Tree{:text => text, path: path, title: title, link: id || Enum.join(path || [], "-")}
+        end
     end
 
     defp maybe_prefix_id(buf, nil, nil), do: buf
     defp maybe_prefix_id(buf, nil, path), do: "<span class=\"hidden\" id=\"#{Enum.join(path, "-")}\"></span>" <> buf
     defp maybe_prefix_id(buf, id, _), do: "<span class=\"hidden\" id=\"#{id}\"></span>" <> buf
 
+    defp findtitle(nil), do: nil
+    defp findtitle(%Earmark.Block.Heading{content: buf}) do
+      buf
+    end
+    defp findtitle(%{attrs: buf}) do
+      case Regex.scan ~r/data-title="([^"]*)"/, buf do
+        [] ->
+          nil
+
+        [[_, title]] ->
+          title
+      end
+    end
+
     defp findpath(nil), do: nil
     defp findpath(buf) do
-      case Regex.scan ~r/path=([^ ]*)/, buf do
+      case Regex.scan ~r/data-path=([^ ]*)/, buf do
         [] ->
           nil
 
@@ -138,10 +168,11 @@ defmodule Autodoc.Scanner do
       end
     end
 
-    defp findid(nil), do: nil
-    defp findid(buf) do
+    defp findid(nil, nil), do: nil
+    defp findid(nil, path), do: Enum.join(path, "-")
+    defp findid(buf, path) do
       case Regex.scan ~r/#([^ ]*)/, buf do
-        [] -> nil
+        [] -> Enum.join(path, "-")
         [[_, id]] -> id
       end
     end

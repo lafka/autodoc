@@ -9,7 +9,8 @@ defmodule Autodoc.Mixfile do
       escript: [
         main_module: Autodoc,
         path: "./autodoc/autodoc"
-      ]
+      ],
+      aliases: aliases,
     ]
   end
 
@@ -19,5 +20,14 @@ defmodule Autodoc.Mixfile do
 
   defp deps do
     [{:earmark, "~> 0.1"}]
+  end
+
+  defp aliases do
+    [compile: &compile/1]
+  end
+
+  def compile(args) do
+    Mix.Task.run "compile", args
+    Mix.Task.run "autodoc"
   end
 end

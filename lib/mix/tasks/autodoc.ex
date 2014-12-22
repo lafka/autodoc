@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Autodoc do
 
   @doc """
   ## CLI Usage
-  {: data-path=autodoc.usage #autodoc.usage }
+  {: data-path=doc.autodoc.usage #autodoc.usage }
 
   **Usage:**
 
@@ -47,7 +47,8 @@ defmodule Mix.Tasks.Autodoc do
       css: [:string, :keep],
       scripts: [:string, :keep],
       template: [:string, :keep],
-      renderer: :string
+      renderer: :string,
+      title: "#{String.capitalize "#{Mix.Project.get!.project[:app]}"} - Autodoc"
     ]
 
   def run(args) do
@@ -96,6 +97,9 @@ defmodule Mix.Tasks.Autodoc do
   defp parse_opt([], acc), do: acc
   defp parse_opt([{:output, dir} | rest], acc) do
     parse_opt rest, [{:output, dir} | acc]
+  end
+  defp parse_opt([{:title, buf} | rest], acc) do
+    parse_opt rest, [{:title, buf} | acc]
   end
   defp parse_opt([{tag, files} | rest], acc) when tag in [:scripts, :css] do
     res = Enum.reduce files, [], fn

@@ -8,29 +8,31 @@
 	<body>
 		<div class="row">
 			<div class="container">
-				<nav class="u-pull-right four columns">
+				<div class="eight columns">
+					<%= for {_, docs} <- content do %>
+						<%= for doc <- docs, do: doc.text %>
+					<%= end %>
+				</div>
+				<nav class="four columns">
 					<div id="docs-aside">
-						<ul id="docs-aside" class="nav">
-							<%= for {key, val} <- sitemap do %>
-								<li class="active">
-									<a href="#<%= key %>"><%= val.title || key %></a>
-									<ul class="nav">
-										<%= for {key, val} <- val[:children] do %>
-											<li><a class="block-link" href="#<%= val.link %>"><%= val.title || key%></a></li>
-										<% end %>
-									</ul>
-								</li>
-							<% end %>
-						</ul>
+						<%= for {k, v} <- docs.children do %>
+							<ul class="nav">
+								<%= for {key, val} <- v.children do %>
+									<li class="active">
+										<a href="#<%= key %>"><%= val.title || key %></a>
+										<ul class="nav">
+											<%= for {key, val} <- val.children || %{} do %>
+												<li><a class="block-link" href="#<%= val.link || key %>"><%= val.title || key%></a></li>
+											<% end %>
+										</ul>
+									</li>
+								<% end %>
+							</ul>
+						<%= end %>
+
 						<a class="back-to-top" href="#top">Back to top</a>
 					</div>
 				</nav>
-
-				<div id="content" class="eight columns">
-					<%= for doc <- docs do %>
-						<%= for block <- doc, do: block.text %>
-					<% end %>
-				</div>
 			</div>
 		</div>
 		<footer class="docs-footer" role="contentinfo">

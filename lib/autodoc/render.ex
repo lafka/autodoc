@@ -1,4 +1,8 @@
 defmodule Autodoc.Render do
+
+  alias Autodoc.Scanner
+  alias Autodoc.Scanner.Tree
+
   def render(tree, opts) do
     output = opts[:output] || "./docs"
     vsn = opts[:version] || Mix.Project.get!.project[:version]
@@ -16,49 +20,57 @@ defmodule Autodoc.Render do
 
     layout = opts[:template][:layout] || "./autodoc/assets/index.tpl"
 
+    docs = buildtree(tree)
     buf = EEx.eval_file layout, [
-      docs: Enum.sort(tree, fn(a, b) -> a[:path] < b[:path] end),
+      content: flatten(docs),
+      docs: docs,
       opts: opts,
       versions: versions,
-      version: vsn,
-      sitemap: IO.inspect buildnav(tree)
+      version: vsn
     ]
 
     buf = Regex.replace(~r/\[\[([^\]]*)\]\]/,
       buf,
-      fn(_, link) -> "<a href=\"##{Autodoc.Scanner.tokenize(link)}\">#{link}</a>" end)
+      fn(_, link) -> "<a href=\"##{Scanner.tokenize(link)}\">#{link}</a>" end)
 
     index = Path.join([output, vsn, "index.html"])
     Mix.shell.info "writing #{index} to #{cssout}"
     File.write! index, buf
   end
 
-  defp buildnav(tree) do
-    Enum.reduce tree, %{}, fn
-      ([%{title: title, path: path} = elem |_], acc) ->
-        in_path acc, path, {elem.link, title}
+  def buildtree(tree) do
+    Enum.reduce tree, %Tree{}, fn
+      ([_ |_] = elems, acc) ->
+        Enum.reduce elems, acc, fn(elem, acc) ->
+          in_path acc, elem.path, elem
+        end
 
-      ([], acc) ->
+      ([] , acc) ->
         acc
     end
   end
 
-  defp in_path(acc, [k], {link, title}) do
-    Dict.put acc, k, (acc[k] || %{})
-      |> Dict.put(:title, title)
-      |> Dict.put(:link, link)
+  defp in_path(acc, [], obj) do
+    path = Enum.join obj.path, "."
+    %{obj | :children => acc.children}
   end
 
-  defp in_path(acc, [k|rest], title) do
-    case acc[k] do
-      nil ->
-        Dict.put acc, k, %{:children => in_path(acc[k] || %{}, rest, title)}
+  defp in_path(acc, [k|rest], obj) do
+    children = Dict.put acc.children, k, in_path(acc.children[k] || %Tree{}, rest, obj)
+    %{acc | :children => children}
+  end
+  defp in_path(acc, nil, obj) do
+    Mix.shell.info "failed to render obj: no path, #{inspect obj}"
+    System.halt 1
+  end
 
-      %{:children => children} = elem ->
-        Dict.put acc, k, %{elem | :children => in_path(children, rest, title)}
-
-      %{} ->
-        Dict.put acc, k, %{:children => in_path(%{}, rest, title)}
+  # flatten into a sorted tree
+  defp flatten(%{children: tree}) do
+    Enum.into tree, %{}, fn({k,v}) -> {k, [v | flatten2(v)]} end
+  end
+  defp flatten2(%{children: tree}) do
+    Enum.flat_map tree, fn({_, item}) ->
+      [item | flatten2 item]
     end
   end
 end

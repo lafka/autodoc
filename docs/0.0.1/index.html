@@ -8,44 +8,18 @@
 	<body>
 		<div class="row">
 			<div class="container">
-				<nav class="u-pull-right four columns">
-					<div id="docs-aside">
-						<ul id="docs-aside" class="nav">
-							
-								<li class="active">
-									<a href="#autodoc">Autodoc</a>
-									<ul class="nav">
-										
-											<li><a class="block-link" href="#sourcefiles">Finding sources</a></li>
-										
-											<li><a class="block-link" href="#autodoc.usage">CLI Usage</a></li>
-										
-									</ul>
-								</li>
-							
-						</ul>
-						<a class="back-to-top" href="#top">Back to top</a>
-					</div>
-				</nav>
-
-				<div id="content" class="eight columns">
+				<div class="eight columns">
 					
-						<span class="hidden" id="autodoc"></span><h1>Autodoc</h1>
+						<span class="hidden" id="doc-autodoc"></span><h1 data-path="doc.autodoc">Autodoc</h1>
 <p>Tool to build a complete documentation from various sources.</p>
-
-					
-						
-					
-						<span class="hidden" id="sourcefiles"></span><h2 id="sourcefiles" path="autodoc.sourcefiles">Finding sources</h2>
+<span class="hidden" id="doc-autodoc-sourcefiles"></span><h2 id="sourcefiles" data-path="doc.autodoc.sourcefiles">Finding sources</h2>
 <p>Sources can be either a plain markdown file or elixir source file
 with markdown documentation inline.</p>
 <p>When a source file is scanned, we look for all the headings. The
 block is then injected into the tree at the level specified by the
 heading. This way of looking up elements means that each block must
 start with a heading, or an element that specifies a path attribute.</p>
-
-					
-						<span class="hidden" id="autodoc.usage"></span><h2 id="autodoc.usage" data-path="autodoc.usage">CLI Usage</h2>
+<span class="hidden" id="doc-autodoc-usage"></span><h2 id="autodoc.usage" data-path="doc.autodoc.usage">CLI Usage</h2>
 <p><strong>Usage:</strong></p>
 <pre><code class="">$ autodoc &lt;opts&gt; [source1, source2, ...]</code></pre>
 <h3 id="cli-arguments">Arguments</h3>
@@ -75,6 +49,28 @@ will be globbed and sent the correct scanner.</p>
 
 					
 				</div>
+				<nav class="four columns">
+					<div id="docs-aside">
+						
+							<ul class="nav">
+								
+									<li class="active">
+										<a href="#autodoc">Autodoc</a>
+										<ul class="nav">
+											
+												<li><a class="block-link" href="#doc-autodoc-sourcefiles">Finding sources</a></li>
+											
+												<li><a class="block-link" href="#doc-autodoc-usage">CLI Usage</a></li>
+											
+										</ul>
+									</li>
+								
+							</ul>
+						
+
+						<a class="back-to-top" href="#top">Back to top</a>
+					</div>
+				</nav>
 			</div>
 		</div>
 		<footer class="docs-footer" role="contentinfo">
