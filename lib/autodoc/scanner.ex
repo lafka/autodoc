@@ -147,6 +147,7 @@ defmodule Autodoc.Scanner do
     defp findtitle(%Earmark.Block.Heading{content: buf}) do
       buf
     end
+    defp findtitle(%{attrs: nil}), do: nil
     defp findtitle(%{attrs: buf}) do
       case Regex.scan ~r/data-title="([^"]*)"/, buf do
         [] ->
